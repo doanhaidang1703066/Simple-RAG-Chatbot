@@ -31,8 +31,8 @@ rag_langchain/
 │   │   └── vectorstore.py          # Initializes the vector database (Chroma/FAISS)
 │   └── app.py                      # Initializes FastAPI and LangServe routes
 └── requirements.txt                # List of required dependencies
+```
 
-'''
 
 
 

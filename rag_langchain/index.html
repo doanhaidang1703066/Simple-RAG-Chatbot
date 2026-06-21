@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Custom RAG Chatbot</title>
+    <style>
+        /* CSS: Trang trí cho giao diện đẹp mắt hơn */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+        }
+
+        #chat-box {
+            height: 400px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+            margin-bottom: 10px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .user-msg {
+            color: #0056b3;
+            text-align: right;
+        }
+
+        .bot-msg {
+            color: #28a745;
+            text-align: left;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #004494;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>🤖 Chatbot Tra Cứu Thông Minh</h2>
+
+    <div id="chat-box">
+        <div class="message bot-msg"><b>AI:</b> Xin chào! Tôi có thể giúp gì cho bạn hôm nay?</div>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="user-input" placeholder="Nhập câu hỏi của bạn vào đây..."
+            onkeypress="handleEnter(event)">
+        <button onclick="sendMessage()">Gửi</button>
+    </div>
+
+    <script>
+        // JavaScript: Nơi xử lý logic gọi API
+        async function sendMessage() {
+            const inputField = document.getElementById("user-input");
+            const chatBox = document.getElementById("chat-box");
+            const question = inputField.value.trim();
+
+            if (!question) return; // Không cho gửi câu hỏi trống
+
+            // 1. Hiển thị tin nhắn của người dùng lên màn hình
+            chatBox.innerHTML += `<div class="message user-msg"><b>Bạn:</b> ${question}</div>`;
+            inputField.value = ""; // Xóa trắng ô nhập liệu
+            chatBox.scrollTop = chatBox.scrollHeight; // Tự động cuộn xuống dòng mới nhất
+
+            // 2. Thêm dòng chữ "AI đang suy nghĩ..." (Tùy chọn)
+            const loadingId = "loading-" + Date.now();
+            chatBox.innerHTML += `<div id="${loadingId}" class="message bot-msg" style="color: gray;"><i>AI đang suy nghĩ...</i></div>`;
+
+            try {
+                // 3. GỌI API ĐẾN SERVER (Thêm chữ /invoke vào cuối)
+                const response = await fetch("http://localhost:5001/generative_ai/invoke", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    // LangServe yêu cầu biến gửi lên phải tên là "input"
+                    body: JSON.stringify({ input: question })
+                });
+
+                const data = await response.json();
+
+                // 4. Xóa dòng "AI đang suy nghĩ..."
+                document.getElementById(loadingId).remove();
+
+                // LangServe trả về kết quả nằm trong biến "output"
+                chatBox.innerHTML += `<div class="message bot-msg"><b>AI:</b> ${data.output}</div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+
+            } catch (error) {
+
+                document.getElementById(loadingId).remove();
+                chatBox.innerHTML += `<div class="message bot-msg" style="color: red;"><b>Lỗi:</b> Không thể kết nối tới Server. Hãy chắc chắn Terminal uvicorn đang chạy!</div>`;
+            }
+        }
+
+        // Bắt sự kiện nhấn phím Enter để gửi
+        function handleEnter(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+    </script>
+</body>
+
+</html>

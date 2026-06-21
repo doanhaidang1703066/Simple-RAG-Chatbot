@@ -32,6 +32,9 @@ rag_langchain/
 │   └── app.py                      # Initializes FastAPI and LangServe routes
 └── requirements.txt                # List of required dependencies
 
+'''
+
+
 
 ## 🛠️ Requirements
 
